@@ -45,7 +45,7 @@ def generate_launch_description():
 
     velodyne = IncludeLaunchDescription(
                 PythonLaunchDescriptionSource([os.path.join(
-                    get_package_share_directory("velodyne"),'launch','velodyne-all-nodes-VLP16-launch.py'
+                    get_package_share_directory("robot_disco"),'launch','velodyne.launch.py'
                 )])
     )
     
@@ -58,8 +58,6 @@ def generate_launch_description():
                     'device_type' : 'd435'
                 }.items()       
     )
-    
-
 
     robot_description = Command(['ros2 param get --hide-type /robot_state_publisher robot_description'])
 
