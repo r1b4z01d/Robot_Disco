@@ -12,12 +12,12 @@ from nav2_common.launch import HasNodeParams
 def generate_launch_description():
     use_sim_time = LaunchConfiguration('use_sim_time')
     params_file = LaunchConfiguration('params_file')
-    default_params_file = os.path.join(get_package_share_directory("articubot_one"),
+    default_params_file = os.path.join(get_package_share_directory("robot_disco"),
                                        'config', 'mapper_params_online_async.yaml')
 
     declare_use_sim_time_argument = DeclareLaunchArgument(
         'use_sim_time',
-        default_value='true',
+        default_value='false',
         description='Use simulation/Gazebo clock')
     declare_params_file_cmd = DeclareLaunchArgument(
         'params_file',
