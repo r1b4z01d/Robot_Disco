@@ -86,7 +86,8 @@ def generate_launch_description():
             name='map_server',
             output='screen',
             parameters=[configured_params],
-            remappings=remappings),
+            remappings=remappings,
+            arguments=['--ros-args','--log-level','WARN']),
 
         Node(
             package='nav2_amcl',
@@ -94,7 +95,8 @@ def generate_launch_description():
             name='amcl',
             output='screen',
             parameters=[configured_params],
-            remappings=remappings),
+            remappings=remappings,
+            arguments=['--ros-args','--log-level','WARN']),
 
         Node(
             package='nav2_lifecycle_manager',
@@ -103,5 +105,6 @@ def generate_launch_description():
             output='screen',
             parameters=[{'use_sim_time': use_sim_time},
                         {'autostart': autostart},
-                        {'node_names': lifecycle_nodes}])
+                        {'node_names': lifecycle_nodes}],
+            arguments=['--ros-args','--log-level','WARN'])
     ])

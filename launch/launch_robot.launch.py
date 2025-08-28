@@ -40,7 +40,8 @@ def generate_launch_description():
             package="twist_mux",
             executable="twist_mux",
             parameters=[twist_mux_params],
-            remappings=[('/cmd_vel_out','/diff_cont/cmd_vel_unstamped')]
+            remappings=[('/cmd_vel_out','/diff_cont/cmd_vel_unstamped')],
+            arguments=['--ros-args','--log-level','WARN']
         )
 
     velodyne = IncludeLaunchDescription(
@@ -51,7 +52,7 @@ def generate_launch_description():
     
     realsense_d435 = IncludeLaunchDescription(
                 PythonLaunchDescriptionSource([os.path.join(
-                    get_package_share_directory("realsense2_camera"),'launch','rs_launch.py'
+                    get_package_share_directory("robot_disco"),'launch','realsense_launch.py'
                 )]),
                  launch_arguments={
                     'pointcloud.enable': 'True',
@@ -67,7 +68,8 @@ def generate_launch_description():
         package="controller_manager",
         executable="ros2_control_node",
         parameters=[{'robot_description': robot_description},
-                    controller_params_file]
+                    controller_params_file],
+        arguments=['--ros-args','--log-level','WARN']
     )
 
     delayed_controller_manager = TimerAction(period=3.0, actions=[controller_manager])
@@ -75,7 +77,7 @@ def generate_launch_description():
     diff_drive_spawner = Node(
         package="controller_manager",
         executable="spawner",
-        arguments=["diff_cont"],
+        arguments=['diff_cont','--ros-args','--log-level','WARN'],
     )
 
     delayed_diff_drive_spawner = RegisterEventHandler(
@@ -88,7 +90,7 @@ def generate_launch_description():
     joint_broad_spawner = Node(
         package="controller_manager",
         executable="spawner",
-        arguments=["joint_broad"],
+        arguments=["joint_broad",'--ros-args','--log-level','WARN'],
     )
 
     delayed_joint_broad_spawner = RegisterEventHandler(

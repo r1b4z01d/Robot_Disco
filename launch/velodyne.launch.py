@@ -45,24 +45,30 @@ def generate_launch_description():
     velodyne_driver_node = launch_ros.actions.Node(package='velodyne_driver',
                                                    executable='velodyne_driver_node',
                                                    output='both',
-                                                   parameters=[driver_params_file])
+                                                   parameters=[driver_params_file],
+                                                   arguments=['--ros-args','--log-level','WARN'])
 
     convert_share_dir = ament_index_python.packages.get_package_share_directory('velodyne_pointcloud')
     convert_params_file = os.path.join(convert_share_dir, 'config', 'VLP16-velodyne_transform_node-params.yaml')
+
     with open(convert_params_file, 'r') as f:
         convert_params = yaml.safe_load(f)['velodyne_transform_node']['ros__parameters']
+    
     convert_params['calibration'] = os.path.join(convert_share_dir, 'params', 'VLP16db.yaml')
+    
     velodyne_transform_node = launch_ros.actions.Node(package='velodyne_pointcloud',
                                                       executable='velodyne_transform_node',
                                                       output='both',
-                                                      parameters=[convert_params])
+                                                      parameters=[convert_params],
+                                                      arguments=['--ros-args','--log-level','WARN'])
 
     laserscan_share_dir = ament_index_python.packages.get_package_share_directory('velodyne_laserscan')
     laserscan_params_file = os.path.join(laserscan_share_dir, 'config', 'default-velodyne_laserscan_node-params.yaml')
     velodyne_laserscan_node = launch_ros.actions.Node(package='velodyne_laserscan',
                                                       executable='velodyne_laserscan_node',
                                                       output='both',
-                                                      parameters=[laserscan_params_file])
+                                                      parameters=[laserscan_params_file],
+                                                      arguments=['--ros-args','--log-level','WARN'])
 
 
     return launch.LaunchDescription([velodyne_driver_node,

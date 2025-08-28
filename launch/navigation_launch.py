@@ -38,7 +38,7 @@ def generate_launch_description():
     container_name = LaunchConfiguration('container_name')
     container_name_full = (namespace, '/', container_name)
     use_respawn = LaunchConfiguration('use_respawn')
-    log_level = LaunchConfiguration('log_level')
+    log_level = 'WARN'
 
     lifecycle_nodes = ['controller_server',
                        'smoother_server',
