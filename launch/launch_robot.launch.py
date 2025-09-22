@@ -49,6 +49,18 @@ def generate_launch_description():
                     get_package_share_directory("robot_disco"),'launch','velodyne.launch.py'
                 )])
     )
+
+    rp_s2e_lidar = IncludeLaunchDescription(
+                PythonLaunchDescriptionSource([os.path.join(
+                    get_package_share_directory("robot_disco"),'launch','rplidar_s2e_launch.py'
+                )])
+    )
+    
+    rp_s1_lidar = IncludeLaunchDescription(
+                PythonLaunchDescriptionSource([os.path.join(
+                    get_package_share_directory("robot_disco"),'launch','rplidar_s1_launch.py'
+                )])
+    )  
     
     realsense_d435 = IncludeLaunchDescription(
                 PythonLaunchDescriptionSource([os.path.join(
@@ -126,6 +138,8 @@ def generate_launch_description():
         twist_mux,
         velodyne,
         realsense_d435,
+        rp_s1_lidar,
+        rp_s2e_lidar,
         delayed_controller_manager,
         delayed_diff_drive_spawner,
         delayed_joint_broad_spawner
