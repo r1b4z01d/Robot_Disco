@@ -15,9 +15,9 @@ def generate_launch_description():
     udp_ip = LaunchConfiguration('udp_ip', default='192.168.11.2')
     udp_port = LaunchConfiguration('udp_port', default='8089') 
     frame_id = LaunchConfiguration('frame_id', default='rp_s2e_lidar')
-    inverted = LaunchConfiguration('inverted', default='false')
+    inverted = LaunchConfiguration('inverted', default='true')
     angle_compensate = LaunchConfiguration('angle_compensate', default='true')
-    scan_mode = LaunchConfiguration('scan_mode', default='Sensitivity')
+    scan_mode = LaunchConfiguration('scan_mode', default='DenseBoost')
     scan_frequency = LaunchConfiguration('scan_frequency', default='10')
     topic_name = LaunchConfiguration('topic_name', default='rp_s2e_lidar/scan')
 
@@ -66,7 +66,7 @@ def generate_launch_description():
         Node(
             package='rplidar_ros',
             executable='rplidar_node',
-            name='rplidar_node',
+            name='rplidar_s2e_node',
             parameters=[{'channel_type': channel_type,
                          'udp_ip': udp_ip,
                          'udp_port': udp_port,

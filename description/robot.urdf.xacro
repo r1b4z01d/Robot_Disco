@@ -6,9 +6,13 @@
 
     <xacro:include filename="robot_core.xacro" />
 
-    <xacro:include filename="ros2_control.xacro" />
+    <xacro:include filename="ros2_control.xacro" /> 
 
     <xacro:include filename="velodyne.xacro" />
+    
+    <xacro:include filename="rp_s1_lidar.xacro" />
+    
+    <xacro:include filename="rp_s2e_lidar.xacro" />
     
     <xacro:include filename="realsense_d435.xacro" />
 </robot>
