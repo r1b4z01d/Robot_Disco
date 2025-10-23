@@ -1,25 +1,17 @@
 import os
 
 from ament_index_python.packages import get_package_share_directory
-
-
 from launch import LaunchDescription
 from launch.actions import IncludeLaunchDescription, TimerAction
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import Command
 from launch.actions import RegisterEventHandler
 from launch.event_handlers import OnProcessStart
-
 from launch_ros.actions import Node
 
 
 
 def generate_launch_description():
-
-
-    # Include the robot_state_publisher launch file, provided by our own package. Force sim time to be enabled
-    # !!! MAKE SURE YOU SET THE PACKAGE NAME CORRECTLY !!!
-
     package_name='robot_disco' 
     
     rsp = IncludeLaunchDescription(
@@ -33,7 +25,6 @@ def generate_launch_description():
                     get_package_share_directory(package_name),'launch','joystick.launch.py'
                 )])
     )
-
 
     twist_mux_params = os.path.join(get_package_share_directory(package_name),'config','twist_mux.yaml')
     twist_mux = Node(
@@ -75,7 +66,6 @@ def generate_launch_description():
     robot_description = Command(['ros2 param get --hide-type /robot_state_publisher robot_description'])
 
     controller_params_file = os.path.join(get_package_share_directory(package_name),'config','my_controllers.yaml')
-
     controller_manager = Node(
         package="controller_manager",
         executable="ros2_control_node",
@@ -83,7 +73,6 @@ def generate_launch_description():
                     controller_params_file],
         arguments=['--ros-args','--log-level','WARN']
     )
-
     delayed_controller_manager = TimerAction(period=3.0, actions=[controller_manager])
 
     diff_drive_spawner = Node(
@@ -91,7 +80,6 @@ def generate_launch_description():
         executable="spawner",
         arguments=['diff_cont','--ros-args','--log-level','WARN'],
     )
-
     delayed_diff_drive_spawner = RegisterEventHandler(
         event_handler=OnProcessStart(
             target_action=controller_manager,
@@ -104,7 +92,6 @@ def generate_launch_description():
         executable="spawner",
         arguments=["joint_broad",'--ros-args','--log-level','WARN'],
     )
-
     delayed_joint_broad_spawner = RegisterEventHandler(
         event_handler=OnProcessStart(
             target_action=controller_manager,

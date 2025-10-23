@@ -4,7 +4,7 @@
     <joint name="rp_s2e_lidar_joint" type="fixed">
         <parent link="base_link"/>
         <child link="rp_s2e_lidar"/>
-        <origin xyz="-0.52 0.0 -0.045" rpy="0.0 0.0 0"/>
+        <origin xyz="-0.52 0.0 0.0" rpy="0.0 0.0 0"/>
     </joint>
 
     <link name="rp_s2e_lidar">
