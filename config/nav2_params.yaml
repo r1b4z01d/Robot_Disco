@@ -191,67 +191,12 @@ local_costmap:
       height: 8
       resolution: 0.05
       #robot_radius: 0.35
-      footprint: "[ [0.45, 0.3], [0.45, -0.3], [-0.45, -0.3], [-0.45, 0.3] ]"
-      plugins: ["obstacle_layer","obstacle_layer2","obstacle_layer3","inflation_layer"]
+      footprint: "[[0.3, 0.3], [0.45, 0.2], [0.45, -0.2],[0.3, -0.3] [-0.45, -0.3],[-0.45, -0.1] ,[-0.6, -0.1] ,[-0.6, 0.1] ,[-0.45, 0.1] ,[-0.45, 0.3]]"
+      plugins: ["inflation_layer"]
       inflation_layer:
         plugin: "nav2_costmap_2d::InflationLayer"
-        cost_scaling_factor: 4.0
-        inflation_radius: 0.4
-      obstacle_layer:
-        plugin: "nav2_costmap_2d::ObstacleLayer"
-        enabled: True
-        observation_sources: scan
-        footprint_clearing_enabled: true
-        max_obstacle_height: 5.0
-        min_obstacle_height: 0.0
-        combination_method: 1
-        scan:
-          topic: /rp_s2e_lidar/scan
-          obstacle_max_range: 6.0
-          obstacle_min_range: 0.05
-          raytrace_max_range: 20.0
-          raytrace_min_range: 0.0
-          max_obstacle_height: 5.0
-          min_obstacle_height: 0.0
-          clearing: True
-          marking: True
-          data_type: "LaserScan"
-          inf_is_valid: false
-      obstacle_layer2:
-        plugin: "nav2_costmap_2d::ObstacleLayer"
-        enabled: True
-        observation_sources: scan
-        footprint_clearing_enabled: true
-        max_obstacle_height: 2.0
-        combination_method: 1
-        scan:
-          topic: /rp_s1_lidar/scan
-          obstacle_max_range: 6.0
-          obstacle_min_range: 0.1
-          raytrace_max_range: 10.0
-          raytrace_min_range: 0.1
-          max_obstacle_height: 5.0
-          min_obstacle_height: 0.0
-          clearing: True
-          marking: True
-          data_type: "LaserScan"
-          inf_is_valid: false
-      obstacle_layer3:
-        cost_scaling_factor: 3.0
-        plugin: "nav2_costmap_2d::ObstacleLayer"
-        enabled: True
-        observation_sources: pointcloud
-        pointcloud:
-          topic: /velodyne_points
-          max_obstacle_height: 2.0
-          min_obstacle_height: 0.0
-          raytrace_max_range: 25.0
-          raytrace_min_range: 0.0
-          obstacle_max_range: 5.0
-          obstacle_min_range: 0.0
-          clearing: True
-          marking: True
-          data_type: "PointCloud2"
+        cost_scaling_factor: 24.0
+        inflation_radius: 0.6
       static_layer:
         map_subscribe_transient_local: True
       always_send_full_costmap: True
@@ -271,24 +216,69 @@ global_costmap:
       robot_base_frame: base_footprint
       use_sim_time: False
       #robot_radius: 0.5
-      footprint: "[ [0.4, 0.3], [0.4, -0.3], [-0.45, -0.3], [-0.45, 0.3] ]"
+      footprint: "[[0.3, 0.3], [0.45, 0.2], [0.45, -0.2],[0.3, -0.3] [-0.45, -0.3],[-0.45, -0.1] ,[-0.6, -0.1] ,[-0.6, 0.1] ,[-0.45, 0.1] ,[-0.45, 0.3]]"
       resolution: 0.05
-      track_unknown_space: true
-      plugins: ["static_layer", "obstacle_layer", "inflation_layer"]
+      track_unknown_space: false
+      plugins: ["static_layer", "obstacle_layer","obstacle_layer2","obstacle_layer3", "inflation_layer"]
       obstacle_layer:
+        cost_scaling_factor: 200.0
         plugin: "nav2_costmap_2d::ObstacleLayer"
         enabled: True
         observation_sources: scan
+        footprint_clearing_enabled: true
+        max_obstacle_height: 5.0
+        min_obstacle_height: 0.0
+        combination_method: 1
         scan:
-          topic: /scan
-          max_obstacle_height: 2.0
+          topic: /rp_s2e_lidar/scan_filtered
+          obstacle_max_range: 3.0
+          obstacle_min_range: 0.05
+          raytrace_max_range: 20.0
+          raytrace_min_range: 0.0
+          max_obstacle_height: 5.0
+          min_obstacle_height: 0.0
           clearing: True
           marking: True
           data_type: "LaserScan"
+          inf_is_valid: false
+      obstacle_layer2:
+        cost_scaling_factor: 200.0
+        plugin: "nav2_costmap_2d::ObstacleLayer"
+        enabled: True
+        observation_sources: scan
+        footprint_clearing_enabled: true
+        max_obstacle_height: 2.0
+        min_obstacle_height: 0.0
+        combination_method: 1
+        scan:
+          topic: /rp_s1_lidar/scan_filtered
+          obstacle_max_range: 3.0
+          obstacle_min_range: 0.1
+          raytrace_max_range: 10.0
+          raytrace_min_range: 0.1
+          max_obstacle_height: 5.0
+          min_obstacle_height: 0.0
+          clearing: True
+          marking: True
+          data_type: "LaserScan"
+          inf_is_valid: false
+      obstacle_layer3:
+        cost_scaling_factor: 20.0
+        plugin: "nav2_costmap_2d::ObstacleLayer"
+        enabled: True
+        observation_sources: pointcloud
+        footprint_clearing_enabled: true
+        pointcloud:
+          topic: /velodyne_points
+          max_obstacle_height: 2.0
+          min_obstacle_height: 0.1
           raytrace_max_range: 25.0
           raytrace_min_range: 0.0
           obstacle_max_range: 5.0
-          obstacle_min_range: 0.0
+          obstacle_min_range: 0.15
+          clearing: True
+          marking: True
+          data_type: "PointCloud2"
       static_layer:
         plugin: "nav2_costmap_2d::StaticLayer"
         map_subscribe_transient_local: True
@@ -321,8 +311,8 @@ planner_server:
     GridBased:
       plugin: "nav2_navfn_planner/NavfnPlanner"
       tolerance: 0.5
-      use_astar: false
-      allow_unknown: true
+      use_astar: true
+      allow_unknown: false
 
 smoother_server:
   ros__parameters:
@@ -350,7 +340,7 @@ behavior_server:
       plugin: "nav2_behaviors/Wait"
     assisted_teleop:
       plugin: "nav2_behaviors/AssistedTeleop"
-    global_frame: odom
+    global_frame: map
     robot_base_frame: base_footprint
     transform_tolerance: 0.1
     use_sim_time: False

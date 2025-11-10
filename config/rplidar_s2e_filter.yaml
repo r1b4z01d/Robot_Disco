@@ -1,0 +1,11 @@
+scan_to_scan_filter_chain:
+  ros__parameters:
+    HW_ID: none
+    filter1:
+      name: polygon_filter
+      type: laser_filters/LaserScanPolygonFilter
+      params:
+        polygon_frame: base_link
+        polygon: "[[0.3, 0.3], [0.45, 0.2], [0.45, -0.2],[0.3, -0.3] [-0.45, -0.3],[-0.45, -0.1] ,[-0.6, -0.1] ,[-0.6, 0.1] ,[-0.45, 0.1] ,[-0.45, 0.3]]"
+        invert: false
+        #footprint_topic: base_footprint_exclude

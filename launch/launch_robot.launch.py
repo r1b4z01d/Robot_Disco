@@ -47,12 +47,23 @@ def generate_launch_description():
                 )])
     )
     
+    rp_s2e_lidar_filter = IncludeLaunchDescription(
+                PythonLaunchDescriptionSource([os.path.join(
+                    get_package_share_directory("robot_disco"),'launch','rplidar_s2e_filter_launch.py'
+                )])
+    )
+    
     rp_s1_lidar = IncludeLaunchDescription(
                 PythonLaunchDescriptionSource([os.path.join(
                     get_package_share_directory("robot_disco"),'launch','rplidar_s1_launch.py'
                 )])
     )  
 
+    rp_s1_lidar_filter = IncludeLaunchDescription(
+                PythonLaunchDescriptionSource([os.path.join(
+                    get_package_share_directory("robot_disco"),'launch','rplidar_s1_filter_launch.py'
+                )])
+    )
     realsense_d435 = IncludeLaunchDescription(
                 PythonLaunchDescriptionSource([os.path.join(
                     get_package_share_directory("robot_disco"),'launch','realsense_launch.py'
@@ -108,6 +119,8 @@ def generate_launch_description():
         realsense_d435,
         rp_s1_lidar,
         rp_s2e_lidar,
+        rp_s1_lidar_filter,
+        rp_s2e_lidar_filter,
         delayed_controller_manager,
         delayed_diff_drive_spawner,
         delayed_joint_broad_spawner
