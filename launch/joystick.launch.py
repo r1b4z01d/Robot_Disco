@@ -23,7 +23,8 @@ def generate_launch_description():
             executable='teleop_node',
             name='teleop_node',
             parameters=[joy_params, {'use_sim_time': use_sim_time}],
-            remappings=[('/cmd_vel','/cmd_vel_joy')],
+            #remappings=[('/cmd_vel','/cmd_vel_teleop')],
+            remappings=[('/cmd_vel','/cmd_vel')],
             arguments=['--ros-args','--log-level','WARN']
          )
 

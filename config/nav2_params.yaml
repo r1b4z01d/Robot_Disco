@@ -149,10 +149,10 @@ controller_server:
       min_speed_theta: 0.0
       # Add high threshold velocity for turtlebot 3 issue.
       # https://github.com/ROBOTIS-GIT/turtlebot3_simulations/issues/75
-      acc_lim_x: 2.5
+      acc_lim_x: 0.5
       acc_lim_y: 0.0
       acc_lim_theta: 3.2
-      decel_lim_x: -2.5
+      decel_lim_x: -0.5
       decel_lim_y: 0.0
       decel_lim_theta: -3.2
       vx_samples: 20
@@ -178,35 +178,6 @@ controller_server:
       RotateToGoal.slowing_factor: 5.0
       RotateToGoal.lookahead_time: -1.0
 
-local_costmap:
-  local_costmap:
-    ros__parameters:
-      update_frequency: 5.0
-      publish_frequency: 2.0
-      global_frame: odom
-      robot_base_frame: base_footprint
-      use_sim_time: false
-      rolling_window: true
-      width: 8
-      height: 8
-      resolution: 0.05
-      #robot_radius: 0.35
-      footprint: "[[0.3, 0.3], [0.45, 0.2], [0.45, -0.2],[0.3, -0.3] [-0.45, -0.3],[-0.45, -0.1] ,[-0.6, -0.1] ,[-0.6, 0.1] ,[-0.45, 0.1] ,[-0.45, 0.3]]"
-      plugins: ["inflation_layer"]
-      inflation_layer:
-        plugin: "nav2_costmap_2d::InflationLayer"
-        cost_scaling_factor: 24.0
-        inflation_radius: 0.6
-      static_layer:
-        map_subscribe_transient_local: True
-      always_send_full_costmap: True
-  local_costmap_client:
-    ros__parameters:
-      use_sim_time: False
-  local_costmap_rclcpp_node:
-    ros__parameters:
-      use_sim_time: False
-
 global_costmap:
   global_costmap:
     ros__parameters:
@@ -216,54 +187,12 @@ global_costmap:
       robot_base_frame: base_footprint
       use_sim_time: False
       #robot_radius: 0.5
-      footprint: "[[0.3, 0.3], [0.45, 0.2], [0.45, -0.2],[0.3, -0.3] [-0.45, -0.3],[-0.45, -0.1] ,[-0.6, -0.1] ,[-0.6, 0.1] ,[-0.45, 0.1] ,[-0.45, 0.3]]"
-      resolution: 0.05
+      footprint: "[[0.32, 0.32], [0.45, 0.25], [0.45, -0.25],[0.32, -0.32] [-0.45, -0.32],[-0.45, -0.1] ,[-0.6, -0.1] ,[-0.6, 0.1] ,[-0.45, 0.1] ,[-0.45, 0.32]]"
+      resolution: 0.01
       track_unknown_space: false
-      plugins: ["static_layer", "obstacle_layer","obstacle_layer2","obstacle_layer3", "inflation_layer"]
+      plugins: ["static_layer", "obstacle_layer", "inflation_layer"]
       obstacle_layer:
-        cost_scaling_factor: 200.0
-        plugin: "nav2_costmap_2d::ObstacleLayer"
-        enabled: True
-        observation_sources: scan
-        footprint_clearing_enabled: true
-        max_obstacle_height: 5.0
-        min_obstacle_height: 0.0
-        combination_method: 1
-        scan:
-          topic: /rp_s2e_lidar/scan_filtered
-          obstacle_max_range: 3.0
-          obstacle_min_range: 0.05
-          raytrace_max_range: 20.0
-          raytrace_min_range: 0.0
-          max_obstacle_height: 5.0
-          min_obstacle_height: 0.0
-          clearing: True
-          marking: True
-          data_type: "LaserScan"
-          inf_is_valid: false
-      obstacle_layer2:
-        cost_scaling_factor: 200.0
-        plugin: "nav2_costmap_2d::ObstacleLayer"
-        enabled: True
-        observation_sources: scan
-        footprint_clearing_enabled: true
-        max_obstacle_height: 2.0
-        min_obstacle_height: 0.0
-        combination_method: 1
-        scan:
-          topic: /rp_s1_lidar/scan_filtered
-          obstacle_max_range: 3.0
-          obstacle_min_range: 0.1
-          raytrace_max_range: 10.0
-          raytrace_min_range: 0.1
-          max_obstacle_height: 5.0
-          min_obstacle_height: 0.0
-          clearing: True
-          marking: True
-          data_type: "LaserScan"
-          inf_is_valid: false
-      obstacle_layer3:
-        cost_scaling_factor: 20.0
+        cost_scaling_factor: 2.0
         plugin: "nav2_costmap_2d::ObstacleLayer"
         enabled: True
         observation_sources: pointcloud
@@ -282,11 +211,81 @@ global_costmap:
       static_layer:
         plugin: "nav2_costmap_2d::StaticLayer"
         map_subscribe_transient_local: True
+        enabled: true
+        subscribe_to_updates: true
+        transform_tolerance: 0.1
       inflation_layer:
         plugin: "nav2_costmap_2d::InflationLayer"
         cost_scaling_factor: 3.0
-        inflation_radius: 0.65
+        inflation_radius: 0.55
       always_send_full_costmap: True
+
+local_costmap:
+  local_costmap:
+    ros__parameters:
+      update_frequency: 5.0
+      publish_frequency: 2.0
+      global_frame: odom
+      robot_base_frame: base_footprint
+      rolling_window: true
+      width: 6
+      height: 6
+      resolution: 0.05
+      #robot_radius: 0.22
+      footprint: "[[0.32, 0.32], [0.45, 0.25], [0.45, -0.25],[0.32, -0.32] [-0.45, -0.32],[-0.45, -0.1] ,[-0.6, -0.1] ,[-0.6, 0.1] ,[-0.45, 0.1] ,[-0.45, 0.32]]"
+      plugins: ["obstacle_layer", "inflation_layer"]
+      obstacle_layer:
+        plugin: "nav2_costmap_2d::ObstacleLayer"
+        enabled: True
+        max_obstacle_height: 2.0
+        mark_threshold: 2
+        observation_sources: scan scan pointcloud
+        scan:
+          topic: /rp_s2e_lidar/scan_filtered
+          obstacle_max_range: 3.0
+          obstacle_min_range: 0.05
+          raytrace_max_range: 20.0
+          raytrace_min_range: 0.0
+          max_obstacle_height: 5.0
+          min_obstacle_height: 0.0
+          clearing: True
+          marking: True
+          data_type: "LaserScan"
+          inf_is_valid: false
+        scan:
+          topic: /rp_s1_lidar/scan_filtered
+          obstacle_max_range: 3.0
+          obstacle_min_range: 0.1
+          raytrace_max_range: 10.0
+          raytrace_min_range: 0.1
+          max_obstacle_height: 5.0
+          min_obstacle_height: 0.0
+          clearing: True
+          marking: True
+          data_type: "LaserScan"
+          inf_is_valid: false
+        pointcloud:
+          topic: /velodyne_points
+          max_obstacle_height: 2.0
+          min_obstacle_height: 0.1
+          raytrace_max_range: 25.0
+          raytrace_min_range: 0.0
+          obstacle_max_range: 5.0
+          obstacle_min_range: 0.15
+          clearing: True
+          marking: True
+          data_type: "PointCloud2"
+      inflation_layer:
+        plugin: "nav2_costmap_2d::InflationLayer"
+        cost_scaling_factor: 0.1
+        inflation_radius: 0.55
+      always_send_full_costmap: True
+  local_costmap_client:
+    ros__parameters:
+      use_sim_time: False
+  local_costmap_rclcpp_node:
+    ros__parameters:
+      use_sim_time: False
 
 map_server:
   ros__parameters:
@@ -332,8 +331,10 @@ behavior_server:
     behavior_plugins: ["spin", "backup", "drive_on_heading", "assisted_teleop", "wait"]
     spin:
       plugin: "nav2_behaviors/Spin"
+      is_recovery: False
     backup:
       plugin: "nav2_behaviors/BackUp"
+      is_recovery: False
     drive_on_heading:
       plugin: "nav2_behaviors/DriveOnHeading"
     wait:
@@ -344,10 +345,11 @@ behavior_server:
     robot_base_frame: base_footprint
     transform_tolerance: 0.1
     use_sim_time: False
-    simulate_ahead_time: 2.0
-    max_rotational_vel: 1.0
-    min_rotational_vel: 0.4
-    rotational_acc_lim: 3.2
+    simulate_ahead_time: 1.0
+    max_rotational_vel: 0.05
+    min_rotational_vel: 0.001
+    rotational_acc_lim: 0.2
+    drive_on_heading.acceleration_limit: 0.5
 
 robot_state_publisher:
   ros__parameters:
@@ -362,19 +364,20 @@ waypoint_follower:
     wait_at_waypoint:
       plugin: "nav2_waypoint_follower::WaitAtWaypoint"
       enabled: True
-      waypoint_pause_duration: 200
+      waypoint_pause_duration: 10
 
 velocity_smoother:
   ros__parameters:
     use_sim_time: False
     smoothing_frequency: 20.0
     scale_velocities: False
-    feedback: "OPEN_LOOP"
-    max_velocity: [0.26, 0.0, 1.0]
-    min_velocity: [-0.26, 0.0, -1.0]
-    max_accel: [2.5, 0.0, 3.2]
-    max_decel: [-2.5, 0.0, -3.2]
+    feedback: "CLOSED_LOOP"
+    max_velocity: [0.26, 0.0, 0.5]
+    min_velocity: [-0.26, 0.0, -0.5]
+    max_accel: [0.5, 0.0, 0.50]
+    max_decel: [-0.5  , 0.0, -0.50]
     odom_topic: "odom"
     odom_duration: 0.1
     deadband_velocity: [0.0, 0.0, 0.0]
     velocity_timeout: 1.0
+

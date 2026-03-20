@@ -4,10 +4,10 @@
   <arg name="tls"                             default="false" />
   <arg name="certfile"                        default="" />
   <arg name="keyfile"                         default="" />
-  <arg name="topic_whitelist"                 default="['/clicked_point','/velodyne_points','/initialpose','/move_base_simple/goal','/behavior_server/transition_event','/camera/camera/color/camera_info','/tf_static','/camera/camera/color/image_raw','/global_costmap/costmap','/transformed_global_plan','/robot_description','/scan','/map','/goal_pose','amcl_pose','/tf']" />
+  <arg name="topic_whitelist"                 default="['/diagnostics','/waypoints_path','/clicked_point','/rosout','/battery','/velodyne_points','/initialpose','/move_base_simple/goal','/behavior_server/transition_event','/camera/camera/color/camera_info','/tf_static','/camera/camera/color/image_raw','/global_costmap/costmap','/transformed_global_plan','/robot_description','/scan','/map','/goal_pose','amcl_pose','/tf','PolygonSlow','PolygonStop']" />
   <arg name="param_whitelist"                 default="['.*']" />
   <arg name="service_whitelist"               default="['.*']" />
-  <arg name="client_topic_whitelist"          default="['/goal_pose','/clicked_point','/initialpose','/move_base_simple/goal']" />
+  <arg name="client_topic_whitelist"          default="['/cmd_vel','/goal_pose','/clicked_point','/initialpose','/cmd_vel_teleop','/move_base_simple/goal']" />
   <arg name="min_qos_depth"                   default="1" />
   <arg name="max_qos_depth"                   default="10" />
   <arg name="num_threads"                     default="3" />

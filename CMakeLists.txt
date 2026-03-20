@@ -37,4 +37,19 @@ install(
   DESTINATION share/${PROJECT_NAME}
 )
 
+install(
+  PROGRAMS
+    scripts/combined_face_hand_node.py
+  DESTINATION lib/${PROJECT_NAME}
+)
+
+install(
+  FILES
+    scripts/eye_renderer.py
+    scripts/face_utils.py
+    scripts/hand_processing.py
+    scripts/window_utils.py
+  DESTINATION lib/${PROJECT_NAME}
+)
+
 ament_package()
