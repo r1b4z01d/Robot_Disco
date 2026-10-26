@@ -33,13 +33,15 @@ if(BUILD_TESTING)
 endif()
 
 install(
-  DIRECTORY config description launch maps worlds
+  DIRECTORY config description launch maps meshes worlds
   DESTINATION share/${PROJECT_NAME}
 )
 
 install(
   PROGRAMS
     scripts/combined_face_hand_node.py
+    scripts/apriltag_relocalizer.py
+    scripts/ur_joint_state_publisher.py
   DESTINATION lib/${PROJECT_NAME}
 )
 

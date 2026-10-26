@@ -1,0 +1,27 @@
+#
+# apriltag_ros detector config for the map-relocalization landmark tags.
+# Loaded by launch/apriltag_relocalization_launch.py (ComposableNode, so no
+# node name / ros__parameters nesting).
+#
+# Print 36h11 tags (https://github.com/AprilRobotics/apriltag-imgs, tag36h11).
+# "size" is the edge length of the tag's black border square in metres, NOT the
+# printed sheet. Measure it; a 5 % size error is a 5 % range error.
+#
+image_transport: 'raw'
+family: '36h11'
+size: 0.15              # default edge size, overridden per tag below
+threads: 4
+max_hamming: 0          # no corrected bits: fewer false positives
+z_up: true
+
+decimate: 1.0           # full-resolution quad detection (640x480 is cheap enough)
+blur: 0.0
+refine-edges: 1
+debug: 0
+
+# Only these IDs are published. Frame names must match the relocalizer's
+# tag_frame_format ("tag_{id}"). Add rows as you print more tags; the three
+# lists must stay the same length.
+tag_ids:    [0,      1,      2,      3,      4,      5,      6,      7,      8,      9]
+tag_frames: [tag_0,  tag_1,  tag_2,  tag_3,  tag_4,  tag_5,  tag_6,  tag_7,  tag_8,  tag_9]
+tag_sizes:  [0.15,   0.15,   0.15,   0.15,   0.15,   0.15,   0.15,   0.15,   0.15,   0.15]

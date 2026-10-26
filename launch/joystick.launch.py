@@ -14,6 +14,10 @@ def generate_launch_description():
     joy_node = Node(
             package='joy',
             executable='joy_node',
+            # joy 3.3.0 (SDL2) segfaults when the pad re-enumerates while running — the 8BitDo 2C's
+            # 2.4 GHz receiver does that on every sleep/wake (seen on the Jetson robot PC, 2026-10-10).
+            respawn=True,
+            respawn_delay=1.0,
             parameters=[joy_params, {'use_sim_time': use_sim_time}],
             arguments=['--ros-args','--log-level','WARN']
          )
@@ -23,8 +27,8 @@ def generate_launch_description():
             executable='teleop_node',
             name='teleop_node',
             parameters=[joy_params, {'use_sim_time': use_sim_time}],
-            #remappings=[('/cmd_vel','/cmd_vel_teleop')],
-            remappings=[('/cmd_vel','/cmd_vel')],
+            # twist_mux's highest-priority input (see config/twist_mux.yaml)
+            remappings=[('/cmd_vel','/cmd_vel_joy')],
             arguments=['--ros-args','--log-level','WARN']
          )
 

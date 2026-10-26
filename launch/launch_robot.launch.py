@@ -8,6 +8,7 @@ from launch.substitutions import Command
 from launch.actions import RegisterEventHandler
 from launch.event_handlers import OnProcessStart
 from launch_ros.actions import Node
+from launch_ros.parameter_descriptions import ParameterValue
 
 
 
@@ -31,7 +32,9 @@ def generate_launch_description():
             package="twist_mux",
             executable="twist_mux",
             parameters=[twist_mux_params],
-            remappings=[('/cmd_vel_out','/diff_cont/cmd_vel_unstamped')],
+            # Output goes through the collision monitor, which publishes
+            # /diff_cont/cmd_vel_unstamped (see config/collision_monitor_params.yaml).
+            remappings=[('/cmd_vel_out','/cmd_vel_raw')],
             arguments=['--ros-args','--log-level','WARN']
         )
 
@@ -70,11 +73,41 @@ def generate_launch_description():
                 )]),
                  launch_arguments={
                     'pointcloud.enable': 'True',
-                    'device_type' : 'd435'
-                }.items()       
+                    'device_type' : 'd435',
+                    # 1280x720 at 15 fps: on USB 3 the D435i defaults to 30 fps (~78 MB/s raw), which
+                    # overruns the Foxglove bridge's send buffer over Wi-Fi; 15 fps is what the old
+                    # USB-2 link gave and all robot_face needs (2026-10-11).
+                    'rgb_camera.color_profile': '1280,720,15',
+                }.items()
     )
 
-    robot_description = Command(['ros2 param get --hide-type /robot_state_publisher robot_description'])
+    # Build the description from the xacro directly — the same command rsp.launch.py runs — instead
+    # of `ros2 param get /robot_state_publisher robot_description`. That shell-out was evaluated when
+    # the 3 s timer below fired, and whenever robot_state_publisher had not finished its own xacro +
+    # DDS discovery by then it failed with "executed command failed", launch dropped this ONE action
+    # and brought everything else up: no controller_manager, no diff_cont, no /odom, no odom->base_link
+    # TF. AMCL then has no odometry chain, never publishes map->odom or /amcl_pose, and every pose
+    # estimate from Foxglove/RViz is silently ignored — the map never moves. Seen on the robot PC
+    # 2026-10-08 (RD log: 30+ such failures over its history). Generating it here has no dependency
+    # on another node, so it cannot race.
+    xacro_file = os.path.join(get_package_share_directory(package_name), 'description', 'robot.urdf.xacro')
+    # ParameterValue(value_type=str): without it launch_ros tries to parse the URDF as YAML and
+    # on Humble can fail with "Unable to parse the value of parameter robot_description as yaml"
+    # (seen on the Jetson robot PC 2026-10-10 with the apt ur_description).
+    robot_description = ParameterValue(
+        Command(['xacro ', xacro_file, ' use_ros2_control:=true sim_mode:=false']), value_type=str)
+
+    # The UR5e's joints in the base description (ur_mount.xacro, tf_prefix "ur_") get their angles
+    # from a read-only RTDE poll, so the arm moves in Foxglove/TF during a VLA eval or pendant use,
+    # when the ROS UR driver is not (and must not be) running. Harmless when the arm is off: it retries.
+    ur_joint_states = Node(
+        package=package_name,
+        executable='ur_joint_state_publisher.py',
+        parameters=[{'robot_ip': '192.168.11.21', 'rate_hz': 15.0, 'tf_prefix': 'ur_'}],
+        respawn=True,
+        respawn_delay=2.0,
+        arguments=['--ros-args', '--log-level', 'WARN'],
+    )
 
     controller_params_file = os.path.join(get_package_share_directory(package_name),'config','my_controllers.yaml')
     controller_manager = Node(
@@ -113,6 +146,7 @@ def generate_launch_description():
     # Launch them all!
     return LaunchDescription([
         rsp,
+        ur_joint_states,
         joystick,
         twist_mux,
         velodyne,

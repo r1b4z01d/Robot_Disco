@@ -1,0 +1,2 @@
+# CMakeLists.txt installs this directory (Gazebo worlds); git does not track empty dirs,
+# and a symlink-install build fails when it is missing.

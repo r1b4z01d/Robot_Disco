@@ -2,9 +2,11 @@ collision_monitor:
   ros__parameters:
     base_frame_id: "base_footprint"
     odom_frame_id: "odom"
-    cmd_vel_in_topic: "cmd_vel_smoothed"
-    cmd_vel_out_topic: "cmd_vel"
-    state_topic: "collision_monitor_state"
+    # Sits between twist_mux and the diff drive controller so every velocity
+    # source (joystick, nav, behavior server) is gated by it:
+    #   twist_mux -> cmd_vel_raw -> collision_monitor -> /diff_cont/cmd_vel_unstamped
+    cmd_vel_in_topic: "cmd_vel_raw"
+    cmd_vel_out_topic: "/diff_cont/cmd_vel_unstamped"
     transform_tolerance: 0.5
     source_timeout: 5.0
     base_shift_correction: True
@@ -12,9 +14,10 @@ collision_monitor:
     polygons: ["PolygonSlow","PolygonStop"]
     PolygonStop:
       type: "polygon"
-      points: [0.5, 0.3, 0.5, -0.3, -0.6, -0.2, -0.6, 0.2]
+      points: [0.3, 0.3, 0.6, 0.0, 0.3, -0.3, -0.35, -0.2, -0.35, 0.2]
       action_type: "stop"
-      min_points: 4
+      # Humble (nav2 1.1.x) name. Triggers when MORE than this many points are inside.
+      max_points: 3
       visualize: True
       polygon_pub_topic: "polygon_stop"
       enabled: True
@@ -22,7 +25,7 @@ collision_monitor:
       type: "polygon"
       points: [0.8, 0.4, 0.8, -0.4, -0.8, -0.4, -0.8, 0.4]
       action_type: "slowdown"
-      min_points: 4
+      max_points: 3
       slowdown_ratio: 0.3
       visualize: True
       polygon_pub_topic: "polygon_slowdown"
