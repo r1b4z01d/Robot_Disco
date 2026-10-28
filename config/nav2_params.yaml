@@ -203,8 +203,11 @@ global_costmap:
           min_obstacle_height: 0.1
           raytrace_max_range: 25.0
           raytrace_min_range: 0.0
-          obstacle_max_range: 5.0
-          obstacle_min_range: 0.15
+          # 2026-10-27: the UR arm sits 0.3-0.9 m from the Velodyne at its height, and with min_range 0.15
+          # it was marked lethal beside the robot (every Nav2 recovery said "Collision Ahead"); 1.0 m
+          # ignores the arm. Marking capped at 2.5 m so distant phantoms stay out of the local costmap.
+          obstacle_max_range: 2.5
+          obstacle_min_range: 1.0
           clearing: True
           marking: True
           data_type: "PointCloud2"
@@ -239,7 +242,11 @@ local_costmap:
         enabled: True
         max_obstacle_height: 2.0
         mark_threshold: 2
-        observation_sources: scan scan pointcloud
+        # 2026-10-27: the Velodyne is OUT of the planning map — it paints the arm (within 1 m) and a
+        # full-height surface across the corridor at x~7.0 that the 2D lidars and the map do not have,
+        # which closed the route's corridor to the planner. Planning uses the static map + the 2D lidars
+        # the map was built with; the Velodyne still guards close range in the local costmap.
+        observation_sources: scan scan
         scan:
           topic: /rp_s2e_lidar/scan_filtered
           obstacle_max_range: 3.0
@@ -264,14 +271,14 @@ local_costmap:
           marking: True
           data_type: "LaserScan"
           inf_is_valid: false
-        pointcloud:
+        pointcloud:                      # kept for reference; not in observation_sources (see above)
           topic: /velodyne_points
           max_obstacle_height: 2.0
           min_obstacle_height: 0.1
           raytrace_max_range: 25.0
           raytrace_min_range: 0.0
-          obstacle_max_range: 5.0
-          obstacle_min_range: 0.15
+          obstacle_max_range: 2.5
+          obstacle_min_range: 1.0
           clearing: True
           marking: True
           data_type: "PointCloud2"
