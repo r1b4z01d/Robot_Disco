@@ -61,6 +61,9 @@ def generate_launch_description():
 
         Node(
             package='rplidar_ros',
+            # the driver exits on a USB hiccup (the S1's CP2102 re-enumerates) — come back by itself (2026-10-28)
+            respawn=True,
+            respawn_delay=3.0,
             executable='rplidar_node',
             name='rplidar_s1_node',
             parameters=[{'channel_type':s1_channel_type,
