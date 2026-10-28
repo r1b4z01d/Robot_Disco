@@ -103,7 +103,8 @@ def generate_launch_description():
     ur_joint_states = Node(
         package=package_name,
         executable='ur_joint_state_publisher.py',
-        parameters=[{'robot_ip': '192.168.11.21', 'rate_hz': 15.0, 'tf_prefix': 'ur_'}],
+        parameters=[{'robot_ip': '192.168.11.21', 'rate_hz': 15.0, 'tf_prefix': 'ur_',
+                     'fallback': 'home'}],   # arm off -> home pose joint state (keeps the model whole)
         respawn=True,
         respawn_delay=2.0,
         arguments=['--ros-args', '--log-level', 'WARN'],
