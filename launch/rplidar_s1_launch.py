@@ -12,7 +12,11 @@ from launch_ros.actions import Node
 
 def generate_launch_description():
     s1_channel_type = LaunchConfiguration('s1_channel_type', default='serial')
-    s1_serial_port = LaunchConfiguration('s1_serial_port', default='/dev/ttyUSB0')
+    # By-id path, not /dev/ttyUSB0: the S1's CP2102 adapter re-enumerates as ttyUSB1 after a USB drop
+    # (seen twice in one boot on 2026-10-27), and the node then died on every launch.
+    s1_serial_port = LaunchConfiguration(
+        's1_serial_port',
+        default='/dev/serial/by-id/usb-Silicon_Labs_CP2102_USB_to_UART_Bridge_Controller_0001-if00-port0')
     s1_serial_baudrate = LaunchConfiguration('s1_serial_baudrate', default='256000') 
     s1_frame_id = LaunchConfiguration('s1_frame_id', default='rp_s1_lidar')
     s1_inverted = LaunchConfiguration('s1_inverted', default='true')
