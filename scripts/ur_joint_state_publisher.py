@@ -83,7 +83,10 @@ class URJointStatePublisher(Node):
         now = time.time()
         if now < self._next_try:
             return False
-        self._next_try = now + 5.0
+        # ur_rtde prints "connect: No route to host" itself on every attempt; back off to 30 s while
+        # the arm stays off so the base log is not spammed (the fallback joint state keeps publishing)
+        self._fails = getattr(self, "_fails", 0)
+        self._next_try = now + (30.0 if self._fails >= 3 else 5.0)
         try:
             from rtde_receive import RTDEReceiveInterface
         except ImportError:
@@ -97,9 +100,11 @@ class URJointStatePublisher(Node):
             # client that is actually driving the arm
             self._rtde = RTDEReceiveInterface(self.ip, self.rate, ["actual_q", "actual_qd"])
             self.get_logger().info(f"connected to {self.ip} (RTDE receive)")
+            self._fails = 0
             return True
         except Exception as e:  # noqa: BLE001 — arm off, in local mode, or RTDE busy: retry later
-            self.get_logger().warn(f"RTDE connect to {self.ip} failed: {e}; retrying in 5 s", throttle_duration_sec=30.0)
+            self._fails += 1
+            self.get_logger().warn(f"RTDE connect to {self.ip} failed: {e}; retrying", throttle_duration_sec=120.0)
             self._rtde = None
             return False
 
