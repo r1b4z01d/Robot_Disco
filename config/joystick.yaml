@@ -14,14 +14,14 @@ teleop_node:
     scale_linear:
       x: 0.25
     scale_linear_turbo:
-      x: 0.5
+      x: 1.0
 
     axis_angular:
       yaw: 0
     scale_angular:
       yaw: 0.5
     scale_angular_turbo:
-      yaw: 1.0
+      yaw: 2.0
 
 
     # Button indices follow joy's SDL GameController mapping when the pad is recognised (the 8BitDo
@@ -33,6 +33,6 @@ teleop_node:
     # 2026-10-27 (same pad, Bluetooth): LB reports 6 (it was 9 on 10-11 — the mapping moved).
     # Re-measure with a /joy subscriber if the pad, link or joy version changes.
     enable_button: 7         # hold to drive (RB)
-    enable_turbo_button: 6   # LB: hold for the turbo scales (2x linear and angular); applies on its own too
+    enable_turbo_button: 6   # LB: hold for the turbo scales (4x linear and angular); applies on its own too
 
     require_enable_button: true
