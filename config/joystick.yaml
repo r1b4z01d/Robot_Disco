@@ -3,10 +3,13 @@ joy_node:
     # Match by SDL name, not index: the SpaceMouse / Stream Deck / receivers share the js numbering
     # and it shifts on every USB re-enumeration (the SpaceMouse took js0 on 2026-10-12, so
     # device_id 0 silently fed the SpaceMouse to teleop and the Bluetooth pad looked dead).
-    # Names by link (2026-10-31): the 8BitDo Ultimate 2C on its 2.4 GHz USB receiver is bound by
-    # the kernel xpad driver (udev new_id rule) and is called "Generic X-Box pad"; over Bluetooth
-    # it is "8BitDo Ultimate 2C Wireless". Only one can be in use; switch the name with the link.
-    device_name: "Generic X-Box pad"
+    # Names by link (2026-10-31): on its 2.4 GHz USB receiver the 8BitDo Ultimate 2C is driven by
+    # the kernel xpad driver; the rebuilt module from provision/xpad (device table entry, LED +
+    # rumble) names it "8BitDo Ultimate 2C Wireless Controller", the stock Tegra xpad bound via the
+    # udev new_id rule called it "Generic X-Box pad" (and never made the receiver stream — see
+    # provision/xpad/README.md). Over Bluetooth it is "8BitDo Ultimate 2C Wireless" (no
+    # "Controller"). Only one link can be in use; switch the name with the link.
+    device_name: "8BitDo Ultimate 2C Wireless Controller"
     deadzone: 0.05
     autorepeat_rate: 20.0
 
