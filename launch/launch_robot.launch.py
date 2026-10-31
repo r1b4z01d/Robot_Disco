@@ -111,12 +111,18 @@ def generate_launch_description():
     )
 
     controller_params_file = os.path.join(get_package_share_directory(package_name),'config','my_controllers.yaml')
+    # respawn: the RoboClaw's USB link drops now and then (cdc_acm "device not accepting address,
+    # error -71" on the hub, 2026-10-30) and ros2_control_node dies with it; without respawn the base
+    # stays without odom until someone restarts the whole launch. OnProcessStart below fires again on
+    # each respawn, so the spawners re-attach the controllers.
     controller_manager = Node(
         package="controller_manager",
         executable="ros2_control_node",
         parameters=[{'robot_description': robot_description},
                     controller_params_file],
-        arguments=['--ros-args','--log-level','WARN']
+        arguments=['--ros-args','--log-level','WARN'],
+        respawn=True,
+        respawn_delay=2.0,
     )
     delayed_controller_manager = TimerAction(period=3.0, actions=[controller_manager])
 
