@@ -3,7 +3,10 @@ joy_node:
     # Match by SDL name, not index: the SpaceMouse / Stream Deck / receivers share the js numbering
     # and it shifts on every USB re-enumeration (the SpaceMouse took js0 on 2026-10-12, so
     # device_id 0 silently fed the SpaceMouse to teleop and the Bluetooth pad looked dead).
-    device_name: "8BitDo Ultimate 2C Wireless"
+    # Names by link (2026-10-31): the 8BitDo Ultimate 2C on its 2.4 GHz USB receiver is bound by
+    # the kernel xpad driver (udev new_id rule) and is called "Generic X-Box pad"; over Bluetooth
+    # it is "8BitDo Ultimate 2C Wireless". Only one can be in use; switch the name with the link.
+    device_name: "Generic X-Box pad"
     deadzone: 0.05
     autorepeat_rate: 20.0
 
@@ -24,15 +27,15 @@ teleop_node:
       yaw: 2.0
 
 
-    # Button indices follow joy's SDL GameController mapping when the pad is recognised (the 8BitDo
-    # Ultimate 2C over Bluetooth is): 0 A, 1 B, 2 X, 3 Y, 4 back, 5 guide, 6 start, 7 LS, 8 RS,
-    # 9 LB, 10 RB, 11-14 d-pad. The previous 5/6 were the raw xpad order (RB/back) of the old PC's
-    # unmapped pad; same physical buttons, new numbers (2026-10-11).
-    # Measured 2026-10-11 with the 8BitDo Ultimate 2C over Bluetooth on the Jetson (its SDL mapping
-    # does NOT put RB at 10): the shoulder button the operator holds reports index 7. Re-measured
-    # 2026-10-27 (same pad, Bluetooth): LB reports 6 (it was 9 on 10-11 — the mapping moved).
+    # Button indices are joy's SDL *joystick* order (joy 3.3.0 uses SDL_JOYBUTTON events; whether
+    # SDL also has a GameController mapping does not change the numbering). They differ per link:
+    #  - 2.4 GHz receiver, kernel xpad "Generic X-Box pad" (ros2 run joy joy_enumerate_devices:
+    #    GamePad true / Mapped false): 0 A, 1 B, 2 X, 3 Y, 4 LB, 5 RB, 6 back, 7 start, 8 guide,
+    #    9 LS, 10 RS; sticks: axes 0/1 left, 3/4 right, 2/5 triggers, 6/7 d-pad.
+    #  - Bluetooth "8BitDo Ultimate 2C Wireless" (SDL-mapped): RB read 7 and LB 6 (measured
+    #    2026-10-11 and 2026-10-27; the mapping moved once between those dates).
     # Re-measure with a /joy subscriber if the pad, link or joy version changes.
-    enable_button: 7         # hold to drive (RB)
-    enable_turbo_button: 6   # LB: hold for the turbo scales (4x linear and angular); applies on its own too
+    enable_button: 5         # hold to drive (RB)
+    enable_turbo_button: 4   # LB: hold for the turbo scales (4x linear and angular); applies on its own too
 
     require_enable_button: true
