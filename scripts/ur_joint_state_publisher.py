@@ -12,7 +12,7 @@ While the arm is off or unreachable it still publishes a FALLBACK joint state (p
 instead of the arm's links dropping out of TF whenever the UR is powered down (2026-10-28).
 
 Params: robot_ip (192.168.11.21), rate_hz (15), tf_prefix ("ur_"), topic ("/joint_states"),
-fallback ("home"), home_pose_file (~/VLA/outputs/home_pose.json).
+fallback ("home"), home_pose_file (~/rd_ws/VLA/outputs/home_pose.json).
 Needs ur_rtde in the SYSTEM python (pip3 install --user ur_rtde; builds from source on arm64).
 """
 import json
@@ -35,7 +35,7 @@ class URJointStatePublisher(Node):
         self.declare_parameter("tf_prefix", "ur_")
         self.declare_parameter("topic", "/joint_states")
         self.declare_parameter("fallback", "home")
-        self.declare_parameter("home_pose_file", os.path.expanduser("~/VLA/outputs/home_pose.json"))
+        self.declare_parameter("home_pose_file", os.path.expanduser("~/rd_ws/VLA/outputs/home_pose.json"))
         self.fallback = str(self.get_parameter("fallback").value)
         self.home_pose_file = str(self.get_parameter("home_pose_file").value)
         self._home_q = self._load_home()
