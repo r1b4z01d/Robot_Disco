@@ -20,3 +20,8 @@ The mobile base of Robot Disco: a differential-drive robot on RoboClaw motor con
 **Maps** (`maps/`): `zone_one` is the active map (`.pgm`/`.yaml` for AMCL, `.posegraph`/`.data` for slam_toolbox, `.xcf` source); re-record every map-frame pose (routes, landmarks, taught tags) after a fresh map.
 
 **Scripts** (`scripts/`): `apriltag_relocalizer.py`; `ur_joint_state_publisher.py` (UR joints as `/joint_states` from a read-only RTDE connection, with a home-pose fallback while the arm is off, so the arm stays in the description during VLA runs); `bake_amazing_hand.py` (hand meshes for the description). The copies of the face node under `scripts/` are leftovers from before `robot_face` became its own package.
+
+## License
+
+[CC BY-NC-SA 4.0](LICENSE). The nav2 / realsense launch files under `launch/` started from the upstream
+templates and keep their Apache-2.0 headers.
