@@ -22,11 +22,13 @@ def generate_launch_description():
     s1_inverted = LaunchConfiguration('s1_inverted', default='true')
     s1_topic_name = LaunchConfiguration('s1_topic_name', default='rp_s1_lidar/scan')
     s1_angle_compensate = LaunchConfiguration('s1_angle_compensate', default='true')
-    # Pinned to Standard (2026-11-02): left empty, SDK 2.1.0 picks DenseBoost for the S1. In DenseBoost the unit
-    # first reported nothing closer than ~0.9 m (a 0.9-1.5 m ring; a power cycle cleared that) and afterwards every
-    # range came back a constant ~0.33 m too long (box at a taped 0.50 m -> 0.83, 1.00 -> 1.32). Standard is the
-    # S1's native 9.2 kHz mode. If the offset survives in Standard, the unit itself is at fault.
-    s1_scan_mode = LaunchConfiguration('s1_scan_mode', default='Standard')
+    # Scan mode: left empty the SDK picks DenseBoost (9 kHz); Standard is only 4 kHz on this unit. Tested 2026-11-02:
+    # the S1's ranges came back a constant ~0.33 m too long in BOTH modes (box at a taped 0.50 m -> 0.83, 1.00 ->
+    # 1.32), so the mode is not the cause; the offset is corrected by the scan_range_offset node below.
+    s1_scan_mode = LaunchConfiguration('s1_scan_mode', default='')
+    # The driver publishes the uncorrected scan; scan_range_offset.py republishes it with the measured
+    # correction on the topic everything else reads (filter chain, map pages, --raw-scans).
+    s1_range_offset = LaunchConfiguration('s1_range_offset', default='-0.33')
 
     return LaunchDescription([
         DeclareLaunchArgument(
@@ -67,7 +69,12 @@ def generate_launch_description():
         DeclareLaunchArgument(
             's1_scan_mode',
             default_value=s1_scan_mode,
-            description='RPLidar scan mode (Standard = the S1 native mode; empty lets the SDK pick)'),
+            description='RPLidar scan mode (empty = the SDK picks DenseBoost; Standard is the 4 kHz fallback)'),
+
+        DeclareLaunchArgument(
+            's1_range_offset',
+            default_value=s1_range_offset,
+            description='metres ADDED to every S1 range (negative shortens); re-measure with a box at a taped distance; 0.0 for a healthy unit'),
 
         Node(
             package='rplidar_ros',
@@ -83,7 +90,18 @@ def generate_launch_description():
                          'inverted': s1_inverted,
                          'angle_compensate': s1_angle_compensate,
                          'scan_mode': s1_scan_mode,
-                         'topic_name': s1_topic_name }],
+                         'topic_name': [s1_topic_name, '_uncorrected'] }],
+            output='screen'),
+
+        Node(
+            package='robot_disco',
+            executable='scan_range_offset.py',
+            name='rplidar_s1_range_offset',
+            respawn=True,
+            respawn_delay=3.0,
+            parameters=[{'in_topic': [s1_topic_name, '_uncorrected'],
+                         'out_topic': s1_topic_name,
+                         'offset': s1_range_offset}],
             output='screen'),
     ])
 

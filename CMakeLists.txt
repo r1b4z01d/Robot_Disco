@@ -41,6 +41,7 @@ install(
   PROGRAMS
     scripts/combined_face_hand_node.py
     scripts/apriltag_relocalizer.py
+    scripts/scan_range_offset.py
     scripts/ur_joint_state_publisher.py
   DESTINATION lib/${PROJECT_NAME}
 )
