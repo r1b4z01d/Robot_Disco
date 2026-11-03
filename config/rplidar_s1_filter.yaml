@@ -6,9 +6,12 @@ scan_to_scan_filter_chain:
       type: laser_filters/LaserScanPolygonFilter
       params:
         polygon_frame: base_link
-        # base_link frame. Measured from scan: front casters sit at x~0.34-0.51, |y|~0.34 (URDF caster y is wrong),
-        # drive wheels at |y|~0.27-0.35. Centre front kept at x=0.47 so the stop polygon (x=0.5) isn't blinded.
-        polygon: "[[0.47, 0.2], [0.47, -0.2], [0.55, -0.2], [0.55, -0.42], [-0.5, -0.42], [-0.5, -0.1], [-0.6, -0.1], [-0.6, 0.1], [-0.5, 0.1], [-0.5, 0.42], [0.55, 0.42], [0.55, 0.2]]"
+        # base_link frame. Re-measured 2026-11-02 from the S1 scan with the robot parked (after the S1's near field
+        # came back — see the note in the repo history): the drive wheels and front casters return at |y| 0.42-0.49
+        # for x -0.3..0.5, and the rear corners at x -0.55..-0.6, |y| up to 0.3 — all just outside the old outline
+        # (|y| 0.42, rear -0.5). Now a plain box |y| <= 0.52, x -0.62..0.55, with the centre front kept at x=0.47
+        # so the collision monitor's stop polygon nose (x=0.6, |y|<0.2 near the tip) isn't blinded.
+        polygon: "[[0.47, 0.2], [0.47, -0.2], [0.55, -0.2], [0.55, -0.52], [-0.62, -0.52], [-0.62, 0.52], [0.55, 0.52], [0.55, 0.2]]"
         invert: false
         #footprint_topic: base_footprint_exclude
     filter2:
