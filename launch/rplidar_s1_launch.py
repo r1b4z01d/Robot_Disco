@@ -22,6 +22,11 @@ def generate_launch_description():
     s1_inverted = LaunchConfiguration('s1_inverted', default='true')
     s1_topic_name = LaunchConfiguration('s1_topic_name', default='rp_s1_lidar/scan')
     s1_angle_compensate = LaunchConfiguration('s1_angle_compensate', default='true')
+    # Pinned to Standard (2026-11-02): left empty, SDK 2.1.0 picks DenseBoost for the S1. In DenseBoost the unit
+    # first reported nothing closer than ~0.9 m (a 0.9-1.5 m ring; a power cycle cleared that) and afterwards every
+    # range came back a constant ~0.33 m too long (box at a taped 0.50 m -> 0.83, 1.00 -> 1.32). Standard is the
+    # S1's native 9.2 kHz mode. If the offset survives in Standard, the unit itself is at fault.
+    s1_scan_mode = LaunchConfiguration('s1_scan_mode', default='Standard')
 
     return LaunchDescription([
         DeclareLaunchArgument(
@@ -59,6 +64,11 @@ def generate_launch_description():
             default_value=s1_topic_name,
             description='Specifying topic_name the node should publish to.'),
 
+        DeclareLaunchArgument(
+            's1_scan_mode',
+            default_value=s1_scan_mode,
+            description='RPLidar scan mode (Standard = the S1 native mode; empty lets the SDK pick)'),
+
         Node(
             package='rplidar_ros',
             # the driver exits on a USB hiccup (the S1's CP2102 re-enumerates) — come back by itself (2026-10-28)
@@ -72,6 +82,7 @@ def generate_launch_description():
                          'frame_id': s1_frame_id,
                          'inverted': s1_inverted,
                          'angle_compensate': s1_angle_compensate,
+                         'scan_mode': s1_scan_mode,
                          'topic_name': s1_topic_name }],
             output='screen'),
     ])
