@@ -9,6 +9,18 @@ from ament_index_python.packages import get_package_share_directory
 from nav2_common.launch import HasNodeParams
 
 
+def _maps_dir(bringup_dir):
+    """The maps folder the route editor writes to. With a symlink install the share dir holds per-file
+    symlinks into the source tree, so files written there later (active_map, slam_request.yaml, new maps)
+    would be invisible here: follow a known map's symlink to the real folder."""
+    share = os.path.join(bringup_dir, 'maps')
+    for probe in ('zone_one.yaml', 'keepout_mask.yaml'):
+        p = os.path.join(share, probe)
+        if os.path.islink(p):
+            return os.path.dirname(os.path.realpath(p))
+    return share
+
+
 def generate_launch_description():
     use_sim_time = LaunchConfiguration('use_sim_time')
     params_file = LaunchConfiguration('params_file')
@@ -39,10 +51,23 @@ def generate_launch_description():
                                     default_params_file],
                                condition=UnlessCondition(has_node_params))
 
+    # maps/slam_request.yaml (written by the manager's Maps tab through route_editor.py) says whether this
+    # run maps from scratch or continues an existing map's posegraph; without it: a fresh map.
+    maps_dir = _maps_dir(get_package_share_directory("robot_disco"))
+    slam_overrides = {'mode': 'mapping', 'map_file_name': '', 'map_start_at_dock': False}
+    try:
+        import yaml
+        req = yaml.safe_load(open(os.path.join(maps_dir, 'slam_request.yaml'))) or {}
+        if req.get('mode') == 'continue' and req.get('name') and os.path.exists(os.path.join(maps_dir, req['name'] + '.posegraph')):
+            slam_overrides = {'mode': 'mapping', 'map_file_name': os.path.join(maps_dir, req['name']), 'map_start_at_dock': True}
+    except Exception:  # noqa: BLE001 — no request, or a bad one: fresh map
+        pass
+
     start_async_slam_toolbox_node = Node(
         parameters=[
           actual_params_file,
-          {'use_sim_time': use_sim_time}
+          {'use_sim_time': use_sim_time},
+          slam_overrides
         ],
         package='slam_toolbox',
         executable='async_slam_toolbox_node',

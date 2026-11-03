@@ -23,6 +23,30 @@ from launch_ros.actions import Node
 from nav2_common.launch import RewrittenYaml
 
 
+def _maps_dir(bringup_dir):
+    """The maps folder the route editor writes to. With a symlink install the share dir holds per-file
+    symlinks into the source tree, so files written there later (active_map, slam_request.yaml, new maps)
+    would be invisible here: follow a known map's symlink to the real folder."""
+    share = os.path.join(bringup_dir, 'maps')
+    for probe in ('zone_one.yaml', 'keepout_mask.yaml'):
+        p = os.path.join(share, probe)
+        if os.path.islink(p):
+            return os.path.dirname(os.path.realpath(p))
+    return share
+
+
+def _active_map(bringup_dir):
+    """maps/active_map names the map the robot runs (the manager's Maps tab writes it); zone_one if absent."""
+    d = _maps_dir(bringup_dir)
+    try:
+        name = open(os.path.join(d, 'active_map')).read().strip()
+        if name and os.path.exists(os.path.join(d, name + '.yaml')):
+            return name
+    except OSError:
+        pass
+    return 'zone_one'
+
+
 def generate_launch_description():
     # Get the launch directory
     bringup_dir = get_package_share_directory('robot_disco')
@@ -64,8 +88,8 @@ def generate_launch_description():
 
         DeclareLaunchArgument(
             'map',
-            default_value=os.path.join(bringup_dir, 'maps', 'zone_one.yaml'),
-            description='Full path to map yaml file to load'),
+            default_value=os.path.join(_maps_dir(bringup_dir), _active_map(bringup_dir) + '.yaml'),
+            description='Full path to map yaml file to load (default: the map named in maps/active_map, else zone_one)'),
 
         DeclareLaunchArgument(
             'use_sim_time', default_value='false',
