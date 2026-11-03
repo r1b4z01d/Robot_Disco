@@ -191,6 +191,11 @@ global_costmap:
       resolution: 0.01
       track_unknown_space: false
       plugins: ["static_layer", "obstacle_layer", "inflation_layer"]
+      filters: ["keepout_filter"]                  # no-go zones: maps/keepout_zones.yaml -> keepout_mask.pgm (2026-11-02)
+      keepout_filter:
+        plugin: "nav2_costmap_2d::KeepoutFilter"
+        enabled: True
+        filter_info_topic: "/costmap_filter_info"
       obstacle_layer:
         cost_scaling_factor: 2.0
         plugin: "nav2_costmap_2d::ObstacleLayer"
@@ -251,6 +256,11 @@ local_costmap:
       #robot_radius: 0.22
       footprint: "[[0.32, 0.32], [0.45, 0.25], [0.45, -0.25],[0.32, -0.32] [-0.45, -0.32],[-0.45, -0.1] ,[-0.6, -0.1] ,[-0.6, 0.1] ,[-0.45, 0.1] ,[-0.45, 0.32]]"
       plugins: ["obstacle_layer", "inflation_layer"]
+      filters: ["keepout_filter"]                  # same no-go zones in the local costmap, so the controller respects them too
+      keepout_filter:
+        plugin: "nav2_costmap_2d::KeepoutFilter"
+        enabled: True
+        filter_info_topic: "/costmap_filter_info"
       obstacle_layer:
         plugin: "nav2_costmap_2d::ObstacleLayer"
         enabled: True
@@ -307,6 +317,22 @@ local_costmap:
   local_costmap_rclcpp_node:
     ros__parameters:
       use_sim_time: False
+
+# Keepout filter servers (navigation_launch.py): the mask map and the filter info the costmaps' keepout_filter use.
+filter_mask_server:
+  ros__parameters:
+    use_sim_time: False
+    frame_id: "map"
+    topic_name: "filter_mask"
+    # yaml_filename is set by navigation_launch.py (--keepout_mask, default maps/keepout_mask.yaml)
+costmap_filter_info_server:
+  ros__parameters:
+    use_sim_time: False
+    type: 0                                        # 0 = keepout
+    filter_info_topic: "costmap_filter_info"
+    mask_topic: "filter_mask"
+    base: 0.0
+    multiplier: 1.0
 
 map_server:
   ros__parameters:
