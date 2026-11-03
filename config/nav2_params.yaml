@@ -323,14 +323,14 @@ filter_mask_server:
   ros__parameters:
     use_sim_time: False
     frame_id: "map"
-    topic_name: "filter_mask"
+    topic_name: "/filter_mask"                     # absolute: the costmaps resolve a relative name in THEIR namespace
     # yaml_filename is set by navigation_launch.py (--keepout_mask, default maps/keepout_mask.yaml)
 costmap_filter_info_server:
   ros__parameters:
     use_sim_time: False
     type: 0                                        # 0 = keepout
-    filter_info_topic: "costmap_filter_info"
-    mask_topic: "filter_mask"
+    filter_info_topic: "/costmap_filter_info"
+    mask_topic: "/filter_mask"                     # relative "filter_mask" became /global_costmap/filter_mask (no publisher) — seen 2026-11-02
     base: 0.0
     multiplier: 1.0
 
