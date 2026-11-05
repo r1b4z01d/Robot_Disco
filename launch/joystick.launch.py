@@ -9,12 +9,17 @@ from ament_index_python.packages import get_package_share_directory
 def generate_launch_description():
     use_sim_time = LaunchConfiguration('use_sim_time')
 
-    joy_params = os.path.join(get_package_share_directory('articubot_one'),'config','joystick.yaml')
+    joy_params = os.path.join(get_package_share_directory('robot_disco'),'config','joystick.yaml')
 
     joy_node = Node(
             package='joy',
             executable='joy_node',
+            # joy 3.3.0 (SDL2) segfaults when the pad re-enumerates while running — the 8BitDo 2C's
+            # 2.4 GHz receiver does that on every sleep/wake (seen on the Jetson robot PC, 2026-10-10).
+            respawn=True,
+            respawn_delay=1.0,
             parameters=[joy_params, {'use_sim_time': use_sim_time}],
+            arguments=['--ros-args','--log-level','WARN']
          )
 
     teleop_node = Node(
@@ -22,17 +27,10 @@ def generate_launch_description():
             executable='teleop_node',
             name='teleop_node',
             parameters=[joy_params, {'use_sim_time': use_sim_time}],
-            remappings=[('/cmd_vel','/cmd_vel_joy')]
+            # twist_mux's highest-priority input (see config/twist_mux.yaml)
+            remappings=[('/cmd_vel','/cmd_vel_joy')],
+            arguments=['--ros-args','--log-level','WARN']
          )
-
-    # twist_stamper = Node(
-    #         package='twist_stamper',
-    #         executable='twist_stamper',
-    #         parameters=[{'use_sim_time': use_sim_time}],
-    #         remappings=[('/cmd_vel_in','/diff_cont/cmd_vel_unstamped'),
-    #                     ('/cmd_vel_out','/diff_cont/cmd_vel')]
-    #      )
-
 
     return LaunchDescription([
         DeclareLaunchArgument(
@@ -41,5 +39,4 @@ def generate_launch_description():
             description='Use sim time if true'),
         joy_node,
         teleop_node,
-        # twist_stamper       
     ])

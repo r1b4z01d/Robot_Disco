@@ -28,7 +28,7 @@ from nav2_common.launch import RewrittenYaml
 
 def generate_launch_description():
     # Get the launch directory
-    bringup_dir = get_package_share_directory('articubot_one')
+    bringup_dir = get_package_share_directory('robot_disco')
 
     namespace = LaunchConfiguration('namespace')
     use_sim_time = LaunchConfiguration('use_sim_time')
@@ -38,9 +38,14 @@ def generate_launch_description():
     container_name = LaunchConfiguration('container_name')
     container_name_full = (namespace, '/', container_name)
     use_respawn = LaunchConfiguration('use_respawn')
-    log_level = LaunchConfiguration('log_level')
+    log_level = 'INFO'
 
-    lifecycle_nodes = ['controller_server',
+    keepout_mask = LaunchConfiguration('keepout_mask')
+
+    # the keepout servers first: the costmaps' keepout_filter waits for /costmap_filter_info + /filter_mask
+    lifecycle_nodes = ['filter_mask_server',
+                       'costmap_filter_info_server',
+                       'controller_server',
                        'smoother_server',
                        'planner_server',
                        'behavior_server',
@@ -86,6 +91,11 @@ def generate_launch_description():
         default_value=os.path.join(bringup_dir, 'config', 'nav2_params.yaml'),
         description='Full path to the ROS2 parameters file to use for all launched nodes')
 
+    declare_keepout_mask_cmd = DeclareLaunchArgument(
+        'keepout_mask',
+        default_value=os.path.join(bringup_dir, 'maps', 'keepout_mask.yaml'),
+        description='Keepout filter mask (built from maps/keepout_zones.yaml by maps/make_keepout_mask.py)')
+
     declare_autostart_cmd = DeclareLaunchArgument(
         'autostart', default_value='true',
         description='Automatically startup the nav2 stack')
@@ -109,6 +119,27 @@ def generate_launch_description():
     load_nodes = GroupAction(
         condition=IfCondition(PythonExpression(['not ', use_composition])),
         actions=[
+            # no-go zones: the mask map + filter info for the costmaps' keepout_filter (2026-11-02)
+            Node(
+                package='nav2_map_server',
+                executable='map_server',
+                name='filter_mask_server',
+                output='screen',
+                respawn=use_respawn,
+                respawn_delay=2.0,
+                parameters=[configured_params, {'yaml_filename': keepout_mask}],
+                arguments=['--ros-args', '--log-level', log_level],
+                remappings=remappings),
+            Node(
+                package='nav2_map_server',
+                executable='costmap_filter_info_server',
+                name='costmap_filter_info_server',
+                output='screen',
+                respawn=use_respawn,
+                respawn_delay=2.0,
+                parameters=[configured_params],
+                arguments=['--ros-args', '--log-level', log_level],
+                remappings=remappings),
             Node(
                 package='nav2_controller',
                 executable='controller_server',
@@ -178,7 +209,7 @@ def generate_launch_description():
                 parameters=[configured_params],
                 arguments=['--ros-args', '--log-level', log_level],
                 remappings=remappings +
-                        [('cmd_vel', 'cmd_vel_nav'), ('cmd_vel_smoothed', 'cmd_vel')]),
+                        [('cmd_vel', 'cmd_vel_nav')]),
             Node(
                 package='nav2_lifecycle_manager',
                 executable='lifecycle_manager',
@@ -195,6 +226,18 @@ def generate_launch_description():
         condition=IfCondition(use_composition),
         target_container=container_name_full,
         composable_node_descriptions=[
+            ComposableNode(
+                package='nav2_map_server',
+                plugin='nav2_map_server::MapServer',
+                name='filter_mask_server',
+                parameters=[configured_params, {'yaml_filename': keepout_mask}],
+                remappings=remappings),
+            ComposableNode(
+                package='nav2_map_server',
+                plugin='nav2_map_server::CostmapFilterInfoServer',
+                name='costmap_filter_info_server',
+                parameters=[configured_params],
+                remappings=remappings),
             ComposableNode(
                 package='nav2_controller',
                 plugin='nav2_controller::ControllerServer',
@@ -237,7 +280,7 @@ def generate_launch_description():
                 name='velocity_smoother',
                 parameters=[configured_params],
                 remappings=remappings +
-                           [('cmd_vel', 'cmd_vel_nav'), ('cmd_vel_smoothed', 'cmd_vel')]),
+                           [('cmd_vel', 'cmd_vel_nav')]),
             ComposableNode(
                 package='nav2_lifecycle_manager',
                 plugin='nav2_lifecycle_manager::LifecycleManager',
@@ -259,6 +302,7 @@ def generate_launch_description():
     ld.add_action(declare_use_sim_time_cmd)
     ld.add_action(declare_params_file_cmd)
     ld.add_action(declare_autostart_cmd)
+    ld.add_action(declare_keepout_mask_cmd)
     ld.add_action(declare_use_composition_cmd)
     ld.add_action(declare_container_name_cmd)
     ld.add_action(declare_use_respawn_cmd)

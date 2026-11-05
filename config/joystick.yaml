@@ -1,6 +1,15 @@
 joy_node:
   ros__parameters:
-    device_id: 0
+    # Match by SDL name, not index: the SpaceMouse / Stream Deck / receivers share the js numbering
+    # and it shifts on every USB re-enumeration (the SpaceMouse took js0 on 2026-10-12, so
+    # device_id 0 silently fed the SpaceMouse to teleop and the Bluetooth pad looked dead).
+    # Names by link (2026-10-31): on its 2.4 GHz USB receiver the 8BitDo Ultimate 2C is driven by
+    # the kernel xpad driver; the rebuilt module from provision/xpad (device table entry, LED +
+    # rumble) names it "8BitDo Ultimate 2C Wireless Controller", the stock Tegra xpad bound via the
+    # udev new_id rule called it "Generic X-Box pad" (and never made the receiver stream — see
+    # provision/xpad/README.md). Over Bluetooth it is "8BitDo Ultimate 2C Wireless" (no
+    # "Controller"). Only one link can be in use; switch the name with the link.
+    device_name: "8BitDo Ultimate 2C Wireless Controller"
     deadzone: 0.05
     autorepeat_rate: 20.0
 
@@ -9,7 +18,7 @@ teleop_node:
     axis_linear:
       x: 1
     scale_linear:
-      x: 0.5
+      x: 0.25
     scale_linear_turbo:
       x: 1.0
 
@@ -18,10 +27,18 @@ teleop_node:
     scale_angular:
       yaw: 0.5
     scale_angular_turbo:
-      yaw: 1.0
+      yaw: 2.0
 
 
-    enable_button: 6
-    enable_turbo_button: 7
+    # Button indices are joy's SDL *joystick* order (joy 3.3.0 uses SDL_JOYBUTTON events; whether
+    # SDL also has a GameController mapping does not change the numbering). They differ per link:
+    #  - 2.4 GHz receiver, kernel xpad "Generic X-Box pad" (ros2 run joy joy_enumerate_devices:
+    #    GamePad true / Mapped false): 0 A, 1 B, 2 X, 3 Y, 4 LB, 5 RB, 6 back, 7 start, 8 guide,
+    #    9 LS, 10 RS; sticks: axes 0/1 left, 3/4 right, 2/5 triggers, 6/7 d-pad.
+    #  - Bluetooth "8BitDo Ultimate 2C Wireless" (SDL-mapped): RB read 7 and LB 6 (measured
+    #    2026-10-11 and 2026-10-27; the mapping moved once between those dates).
+    # Re-measure with a /joy subscriber if the pad, link or joy version changes.
+    enable_button: 5         # hold to drive (RB)
+    enable_turbo_button: 4   # LB: hold for the turbo scales (4x linear and angular); applies on its own too
 
     require_enable_button: true

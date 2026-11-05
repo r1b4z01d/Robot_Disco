@@ -1,21 +1,26 @@
 <?xml version="1.0"?>
 <robot xmlns:xacro="http://www.ros.org/wiki/xacro"  name="robot">
-
-    <xacro:arg name="use_ros2_control" default="true"/>
+<!-- <xacro:include filename="camera.xacro" /> -->
+    
     <xacro:arg name="sim_mode" default="false"/>
 
     <xacro:include filename="robot_core.xacro" />
 
-    <xacro:if value="$(arg use_ros2_control)">
-        <xacro:include filename="ros2_control.xacro" />
-    </xacro:if>
-    <xacro:unless value="$(arg use_ros2_control)">
-        <xacro:include filename="gazebo_control.xacro" />
-    </xacro:unless>
-    <xacro:include filename="lidar.xacro" />
-    <xacro:include filename="camera.xacro" />
-    <!-- <xacro:include filename="depth_camera.xacro" /> -->
+    <xacro:include filename="ros2_control.xacro" /> 
 
-    <xacro:include filename="face.xacro" />
+    <xacro:include filename="velodyne.xacro" />
     
+    <xacro:include filename="rp_s1_lidar.xacro" />
+    
+    <xacro:include filename="rp_s2e_lidar.xacro" />
+    
+    <xacro:include filename="realsense_d435.xacro" />
+
+    <xacro:include filename="ur_mount.xacro" />
+
+    <!-- AmazingHand on the UR flange (static visual at the open pose; see amazing_hand.xacro) -->
+    <xacro:include filename="amazing_hand.xacro" />
+    <xacro:amazing_hand parent="ur_tool0">
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+    </xacro:amazing_hand>
 </robot>

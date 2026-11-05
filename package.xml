@@ -1,13 +1,25 @@
 <?xml version="1.0"?>
 <?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
 <package format="3">
-  <name>articubot_one</name>
-  <version>0.0.0</version>
+  <name>robot_disco</name>
+  <version>0.0.3</version>
   <description>TODO: Package description</description>
-  <maintainer email="my_email@email.com">Josh Newans</maintainer>
-  <license>TODO: License declaration</license>
+  <maintainer email="bryanribas@gmail.com">Bryan Ribas</maintainer>
+  <license>CC BY-NC-SA</license>
 
   <buildtool_depend>ament_cmake</buildtool_depend>
+  <exec_depend>rclpy</exec_depend>
+  <exec_depend>sensor_msgs</exec_depend>
+  <exec_depend>cv_bridge</exec_depend>
+  <exec_depend>geometry_msgs</exec_depend>
+  <exec_depend>std_srvs</exec_depend>
+  <exec_depend>tf2_ros</exec_depend>
+  <exec_depend>apriltag_msgs</exec_depend>
+  <exec_depend>apriltag_ros</exec_depend>
+  <exec_depend>python3-numpy</exec_depend>
+  <!-- scripts/ur_joint_state_publisher.py needs the ur_rtde pip package in the system python
+       (no rosdep key): see rd_ws/provision/pip-robot-face.txt -->
+  <exec_depend>python3-yaml</exec_depend>
 
   <test_depend>ament_lint_auto</test_depend>
   <test_depend>ament_lint_common</test_depend>

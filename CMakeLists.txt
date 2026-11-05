@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.5)
-project(articubot_one)
+project(robot_disco)
 
 # Default to C99
 if(NOT CMAKE_C_STANDARD)
@@ -33,8 +33,26 @@ if(BUILD_TESTING)
 endif()
 
 install(
-  DIRECTORY config description launch worlds
+  DIRECTORY config description launch maps meshes worlds
   DESTINATION share/${PROJECT_NAME}
+)
+
+install(
+  PROGRAMS
+    scripts/combined_face_hand_node.py
+    scripts/apriltag_relocalizer.py
+    scripts/scan_range_offset.py
+    scripts/ur_joint_state_publisher.py
+  DESTINATION lib/${PROJECT_NAME}
+)
+
+install(
+  FILES
+    scripts/eye_renderer.py
+    scripts/face_utils.py
+    scripts/hand_processing.py
+    scripts/window_utils.py
+  DESTINATION lib/${PROJECT_NAME}
 )
 
 ament_package()
