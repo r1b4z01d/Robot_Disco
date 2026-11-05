@@ -14,7 +14,11 @@ collision_monitor:
     polygons: ["PolygonSlow","PolygonStop"]
     PolygonStop:
       type: "polygon"
-      points: [0.3, 0.3, 0.6, 0.0, 0.3, -0.3, -0.35, -0.2, -0.35, 0.2]
+      # Nose at x=0.50: 5 cm past the footprint nose (0.45, nav2_params.yaml) and 3 cm past the body-filter
+      # outline (0.47). It was 0.60 until 2026-11-03: a thin object 0.56 m dead ahead then held the robot
+      # stopped for good, since "stop" also zeroes rotation and the joystick, so nothing could turn away.
+      # PolygonSlow (0.8 m ahead) still gives the early warning.
+      points: [0.3, 0.3, 0.5, 0.0, 0.3, -0.3, -0.35, -0.2, -0.35, 0.2]
       action_type: "stop"
       # Humble (nav2 1.1.x) name. Triggers when MORE than this many points are inside.
       max_points: 3
