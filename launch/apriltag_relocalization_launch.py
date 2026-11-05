@@ -61,7 +61,6 @@ def generate_launch_description():
         parameters=[{
             'detections_topic': '/apriltag/apriltag_detections',
             'landmarks_file': landmarks_file,
-            'tag_frame_format': 'tag_{id}',
             'auto_correct': auto_correct,
         }],
     )

@@ -19,9 +19,10 @@ blur: 0.0
 refine-edges: 1
 debug: 0
 
-# Only these IDs are published. Frame names must match the relocalizer's
-# tag_frame_format ("tag_{id}"). Add rows as you print more tags; the three
-# lists must stay the same length.
+# Only these IDs are published. tag_frames names the TF frame the detector
+# broadcasts for each tag (handy in Foxglove and for `tf2_echo base_footprint
+# tag_4`); the relocalizer itself uses the detection poses, not these frames.
+# Add rows as you print more tags; the three lists must stay the same length.
 tag_ids:    [0,      1,      2,      3,      4,      5,      6,      7,      8,      9]
 tag_frames: [tag_0,  tag_1,  tag_2,  tag_3,  tag_4,  tag_5,  tag_6,  tag_7,  tag_8,  tag_9]
 tag_sizes:  [0.15,   0.15,   0.15,   0.15,   0.15,   0.15,   0.15,   0.15,   0.15,   0.15]

@@ -84,6 +84,15 @@ def transform_to_mat(tf):
     return M
 
 
+def pose_to_mat(pose):
+    """geometry_msgs/Pose -> 4x4."""
+    p, q = pose.position, pose.orientation
+    M = np.eye(4)
+    M[:3, :3] = quat_to_mat(q.x, q.y, q.z, q.w)
+    M[:3, 3] = [p.x, p.y, p.z]
+    return M
+
+
 def mat_to_xy_yaw(M):
     return float(M[0, 3]), float(M[1, 3]), math.atan2(M[1, 0], M[0, 0])
 
@@ -105,8 +114,6 @@ class AprilTagRelocalizer(Node):
         self.declare_parameter('landmarks_file', '')
         self.declare_parameter('map_frame', 'map')
         self.declare_parameter('base_frame', 'base_footprint')
-        # Detector names each tag's TF frame; {id} is replaced by the tag ID.
-        self.declare_parameter('tag_frame_format', 'tag_{id}')
         self.declare_parameter('max_range', 3.0)            # m, camera -> tag
         self.declare_parameter('min_detections', 3)         # agreeing detections before acting
         self.declare_parameter('window_sec', 1.0)           # detections older than this are dropped
@@ -124,7 +131,6 @@ class AprilTagRelocalizer(Node):
         self.landmarks_file = p('landmarks_file').value
         self.map_frame = p('map_frame').value
         self.base_frame = p('base_frame').value
-        self.tag_frame_format = p('tag_frame_format').value
         self.max_range = p('max_range').value
         self.min_detections = p('min_detections').value
         self.window_sec = p('window_sec').value
@@ -186,40 +192,68 @@ class AprilTagRelocalizer(Node):
         header = ('# Map-frame poses of AprilTag landmarks, written by the\n'
                   '# apriltag_relocalizer ~/teach_landmarks service. Re-teach after\n'
                   '# re-mapping or moving a tag.\n')
-        d = os.path.dirname(self.landmarks_file) or '.'
+        # Write through to the real file: with `colcon build --symlink-install` the install-space
+        # path is a symlink into src/, and an os.replace() on the symlink itself swapped it for a
+        # plain file, so taught poses never reached src/ and the next build would have dropped
+        # them (RD, 2026-11-01).
+        target = os.path.realpath(self.landmarks_file)
+        d = os.path.dirname(target) or '.'
         fd, tmp = tempfile.mkstemp(dir=d, suffix='.tmp')
         with os.fdopen(fd, 'w') as f:
             f.write(header)
             yaml.safe_dump(out, f, sort_keys=True)
-        os.replace(tmp, self.landmarks_file)
+        os.chmod(tmp, 0o644)   # mkstemp creates 0600
+        os.replace(tmp, target)
 
     # ----- TF helpers -----
 
-    def lookup(self, target, source, stamp, timeout=0.1):
-        tf = self.tf_buffer.lookup_transform(target, source, stamp, timeout=Duration(seconds=timeout))
-        return transform_to_mat(tf)
+    def lookup(self, target, source, stamp):
+        # No timeout: the node is single-threaded, so waiting here would block the thread that
+        # receives /tf and the wait could never succeed.
+        return transform_to_mat(self.tf_buffer.lookup_transform(target, source, stamp))
 
     def current_map_base(self):
         """AMCL's current estimate, or None if map->base is not available."""
         try:
-            return self.lookup(self.map_frame, self.base_frame, Time(), timeout=0.05)
+            return self.lookup(self.map_frame, self.base_frame, Time())
         except TransformException:
             return None
 
+    def base_from_camera(self, msg):
+        """T_base_camera for the detection message's camera frame, or None.
+
+        The camera sits on a fixed mount, so the chain is static and any stamp works; the
+        message stamp is tried first in case the mount ever becomes articulated.
+        """
+        cam = msg.header.frame_id
+        for stamp in (Time.from_msg(msg.header.stamp), Time()):
+            try:
+                return self.lookup(self.base_frame, cam, stamp)
+            except TransformException as e:
+                err = e
+        self.get_logger().warn(f'TF {self.base_frame} <- {cam}: {err}', throttle_duration_sec=5.0)
+        return None
+
     def visible_tags(self, msg):
-        """Yield (tag_id, T_base_tag) for detections that are known landmarks within range."""
-        stamp = Time.from_msg(msg.header.stamp)
+        """Yield (tag_id, T_base_tag) for detections within range.
+
+        The tag pose comes from the detection itself (camera optical frame), composed with the
+        static base->camera transform. It deliberately does NOT look up the tag_N frames the
+        detector broadcasts: those arrive on /tf a moment after the detection message, so a
+        lookup at the detection stamp failed with "extrapolation into the future" on every
+        frame (RD, 2026-11-01), and waiting for it in this single-threaded node cannot work.
+        """
+        if not msg.detections:
+            return
+        T_base_cam = self.base_from_camera(msg)
+        if T_base_cam is None:
+            return
         for det in msg.detections:
             pos = det.pose.pose.pose.position
             rng = math.sqrt(pos.x ** 2 + pos.y ** 2 + pos.z ** 2)
             if rng > self.max_range:
                 continue
-            frame = self.tag_frame_format.format(id=det.id)
-            try:
-                yield det.id, self.lookup(self.base_frame, frame, stamp)
-            except TransformException as e:
-                self.get_logger().warn(f'TF {self.base_frame} <- {frame}: {e}',
-                                       throttle_duration_sec=5.0)
+            yield det.id, T_base_cam @ pose_to_mat(det.pose.pose.pose)
 
     # ----- detection handling -----
 
