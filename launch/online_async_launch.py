@@ -53,13 +53,24 @@ def generate_launch_description():
 
     # maps/slam_request.yaml (written by the manager's Maps tab through route_editor.py) says whether this
     # run maps from scratch or continues an existing map's posegraph; without it: a fresh map.
+    # Continuing also needs to know WHERE the robot is in that map. `start_pose` carries AMCL's last fix
+    # (the Maps tab seeds it from the live pose before localization is stopped) and becomes
+    # map_start_pose; with no seed we fall back to map_start_at_dock, which resumes at the spot the
+    # original mapping run started from — correct only if the robot is parked there.
     maps_dir = _maps_dir(get_package_share_directory("robot_disco"))
     slam_overrides = {'mode': 'mapping', 'map_file_name': '', 'map_start_at_dock': False}
     try:
         import yaml
         req = yaml.safe_load(open(os.path.join(maps_dir, 'slam_request.yaml'))) or {}
         if req.get('mode') == 'continue' and req.get('name') and os.path.exists(os.path.join(maps_dir, req['name'] + '.posegraph')):
-            slam_overrides = {'mode': 'mapping', 'map_file_name': os.path.join(maps_dir, req['name']), 'map_start_at_dock': True}
+            slam_overrides = {'mode': 'mapping', 'map_file_name': os.path.join(maps_dir, req['name'])}
+            sp = req.get('start_pose')
+            # Exactly one of the two may be set: slam_toolbox reads map_start_pose first, and leaving a
+            # stale map_start_at_dock=true from the params file beside it is only confusing.
+            if isinstance(sp, (list, tuple)) and len(sp) == 3:
+                slam_overrides['map_start_pose'] = [float(v) for v in sp]
+            else:
+                slam_overrides['map_start_at_dock'] = True
     except Exception:  # noqa: BLE001 — no request, or a bad one: fresh map
         pass
 
