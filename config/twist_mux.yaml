@@ -13,3 +13,11 @@ twist_mux:
         topic   : cmd_vel_joy
         timeout : 0.5
         priority: 100
+      # The browser drive pad (route_editor.py /api/drive, the Live tab's pad). Deliberately BELOW the
+      # physical joystick: grabbing the 8BitDo always overrides whoever is driving from a browser.
+      # The 0.5 s timeout is the last of three watchdogs — the pad stops sending on release, the editor
+      # stops publishing 0.4 s after the last command, and this drops the input 0.5 s after that.
+      web:
+        topic   : cmd_vel_web
+        timeout : 0.5
+        priority: 90
