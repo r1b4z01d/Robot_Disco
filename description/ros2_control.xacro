@@ -5,7 +5,11 @@
         <ros2_control name="RealRobot" type="system">
             <hardware>
                 <plugin>roboclaw_hardware_interface/RoboClawHardwareInterface</plugin>
-                <param name="serial_port">/dev/ttyACM0</param>
+                <!-- RoboClaw S1/S2 packet serial on the Jetson 40-pin header (pins 8/10/6) = ttyTHS1,
+                     115200 8N1, address 128. The RoboClaw USB jack is unreliable; ttyTHS1 needs the
+                     PIO device tree (see provision/jetson). -->
+                <param name="serial_port">/dev/ttyTHS1</param>
+                <param name="baud_rate">115200</param>
             </hardware>
             <joint name="left_wheel_joint">
                 <command_interface name="velocity"/>
